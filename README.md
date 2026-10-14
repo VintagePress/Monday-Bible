@@ -17,9 +17,13 @@ Every section has an owner (Legal, Security, Finance, Product, CS Leadership) an
 - Search and the "On this page" menu are built from the page content, so adding a section to the HTML is all it takes to update them.
 - Content is based on monday.com's public help center and trust pages (October 2026).
 
-## Coming next
+## The Bible bot
 
-A chatbot ("Ask the Bible bot") that answers CSM questions using only this Bible, with a link to the source section.
+`chat.html` is a separate chat page. A CSM pastes what the client said and gets back the same structure every time: the objection type, what to say, what to ask next, and links to the Bible sections it used.
+
+`api/chat.js` is a small Vercel serverless function. It reads the live Bible (`index.html`), sends it to Gemini with strict rules (answer only from the Bible, never guess, flag gaps), and returns a structured answer. The Gemini API key is stored as a Vercel environment variable (`GEMINI_API_KEY`) and never reaches the browser.
+
+Because the bot reads the Bible page itself, updating the Bible updates the bot - one source of truth.
 
 ---
 

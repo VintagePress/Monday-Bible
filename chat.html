@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bible Bot</title>
+<meta name="description" content="Ask the AI Bible: paste what a client said and get what to say, what to ask next, and the Bible section it came from.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff; --bg-soft: #f6f7fb; --text: #323338; --muted: #676879; --border: #d0d4e4; --line: #e6e9ef;
+    --link: #0073ea; --primary: #6161ff; --primary-text: #ffffff; --warn: #b57600; --warn-bg: #fff6e0; --error: #d83a52;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #181b34; --bg-soft: #1f2340; --text: #e3e5f0; --muted: #a3a7bd; --border: #3a3f63; --line: #2c3052;
+      --link: #5aa9ff; --primary: #8f8fff; --primary-text: #181b34; --warn: #f2b84b; --warn-bg: #3a3118; --error: #ff7d91;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #181b34; --bg-soft: #1f2340; --text: #e3e5f0; --muted: #a3a7bd; --border: #3a3f63; --line: #2c3052;
+    --link: #5aa9ff; --primary: #8f8fff; --primary-text: #181b34; --warn: #f2b84b; --warn-bg: #3a3118; --error: #ff7d91;
+  }
+
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 "Figtree", -apple-system, "Segoe UI", Roboto, Arial, sans-serif; display: flex; flex-direction: column; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+
+  header { border-bottom: 1px solid var(--line); flex: none; }
+  .header-row { max-width: 1160px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  @media (max-width: 600px) { .header-row { padding: 0 16px; } }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); font-family: "Poppins", sans-serif; font-size: 19px; font-weight: 500; }
+  .brand:hover { text-decoration: none; }
+  .brand svg { color: var(--primary); }
+  .brand span { font-weight: 300; }
+  .header-actions { display: flex; align-items: center; gap: 6px; }
+  .btn-outline { border: 1px solid var(--primary); color: var(--primary); border-radius: 20px; padding: 6px 16px; font-size: 14px; font-weight: 500; white-space: nowrap; }
+  .btn-outline:hover { text-decoration: none; background: color-mix(in srgb, var(--primary) 8%, transparent); }
+  .icon-btn { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 6px; display: grid; place-items: center; }
+  .icon-btn:hover { color: var(--text); background: var(--bg-soft); }
+
+  main { flex: 1; overflow-y: auto; }
+  .col { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 600px) { .col { padding: 0 16px; } }
+
+  /* Empty state */
+  .welcome { padding: 72px 0 24px; text-align: center; }
+  .welcome h1 { font-family: "Poppins", sans-serif; font-weight: 400; font-size: 36px; margin: 0 0 10px; letter-spacing: -.01em; }
+  .welcome p { color: var(--muted); font-size: 17px; margin: 0 auto 32px; max-width: 520px; }
+  .examples { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
+  @media (max-width: 600px) { .examples { grid-template-columns: 1fr; } .welcome { padding-top: 40px; } .welcome h1 { font-size: 30px; } }
+  .example { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 12px 14px; font: 15px/1.45 "Figtree", sans-serif; text-align: left; cursor: pointer; }
+  .example:hover { border-color: var(--border); background: var(--bg-soft); }
+  .example small { display: block; color: var(--muted); font-size: 12.5px; margin-bottom: 2px; }
+
+  /* Conversation */
+  .thread { padding: 32px 0 24px; display: flex; flex-direction: column; gap: 22px; }
+  .msg-user { align-self: flex-end; max-width: 85%; background: var(--bg-soft); border: 1px solid var(--line); border-radius: 14px 14px 4px 14px; padding: 10px 14px; white-space: pre-wrap; }
+  .card { border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; background: var(--bg); }
+  .card-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .pill { border: 1px solid var(--text); border-radius: 16px; padding: 1px 12px; font-size: 13.5px; }
+  .pill.warn { border-color: var(--warn); color: var(--warn); }
+  .copy { margin-left: auto; border: 0; background: none; color: var(--muted); font: 500 13px "Figtree", sans-serif; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 4px 6px; border-radius: 6px; }
+  .copy:hover { color: var(--text); background: var(--bg-soft); }
+  .label { font-size: 13px; font-weight: 700; color: var(--muted); margin: 16px 0 4px; }
+  .say { font-size: 17px; line-height: 1.6; margin: 0; }
+  .ask { margin: 0; font-style: italic; }
+  .card ul { margin: 0; padding-left: 20px; }
+  .card li { margin: 3px 0; }
+  .sources { display: flex; flex-direction: column; gap: 4px; }
+  .sources a { display: inline-flex; align-items: center; gap: 6px; }
+  .sources small { color: var(--muted); }
+  .gap-note { background: var(--warn-bg); border-radius: 8px; padding: 10px 14px; margin-top: 16px; font-size: 14.5px; }
+  .gap-note b { color: var(--warn); }
+  .card-foot { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--line); font-size: 13px; color: var(--muted); }
+  .thinking { color: var(--muted); display: flex; align-items: center; gap: 10px; padding: 4px 2px; }
+  .dots span { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--muted); margin-right: 3px; animation: blink 1.2s infinite; }
+  .dots span:nth-child(2) { animation-delay: .2s; } .dots span:nth-child(3) { animation-delay: .4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+  .error { color: var(--error); font-size: 15px; }
+
+  /* Composer */
+  .composer-wrap { flex: none; border-top: 1px solid var(--line); background: var(--bg); padding: 14px 0 12px; }
+  .composer { display: flex; align-items: flex-end; gap: 8px; border: 1px solid var(--border); border-radius: 12px; padding: 8px 8px 8px 14px; background: var(--bg); }
+  .composer:focus-within { border-color: var(--link); }
+  textarea { flex: 1; border: 0; outline: 0; resize: none; background: transparent; color: var(--text); font: 16px/1.5 "Figtree", sans-serif; max-height: 180px; padding: 6px 0; }
+  textarea::placeholder { color: var(--muted); }
+  textarea:focus-visible { outline: none; }
+  .send { flex: none; width: 38px; height: 38px; border-radius: 10px; border: 0; background: var(--primary); color: var(--primary-text); cursor: pointer; display: grid; place-items: center; }
+  .send:disabled { opacity: .4; cursor: default; }
+  .fine { font-size: 12.5px; color: var(--muted); text-align: center; margin: 8px 0 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <a class="brand" href="/">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5a2.5 2.5 0 0 0-2.5 2.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H19v-3"/><path d="M9 8h6"/></svg>
+      Bible Bot <span>for CSMs</span>
+    </a>
+    <div class="header-actions">
+      <button class="icon-btn" id="newChat" type="button" aria-label="New conversation" title="New conversation" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+      <a class="btn-outline" href="/">Open the Bible</a>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Toggle dark mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="scroll">
+  <div class="col">
+    <div class="welcome" id="welcome">
+      <h1>Ask the Bible</h1>
+      <p>Paste what the client said. You'll get what to say, what to ask next, and the Bible section it came from.</p>
+      <div class="examples" id="examples">
+        <button type="button" class="example"><small>Information Gaps</small>How do I know our data isn't being used to train your models?</button>
+        <button type="button" class="example"><small>Control</small>I'm worried we turn this on and get hit with a bill nobody budgeted for.</button>
+        <button type="button" class="example"><small>Trust</small>We tried an AI pilot last year with another vendor and it just didn't deliver.</button>
+        <button type="button" class="example"><small>Readiness</small>We're mid-migration on another system. Anything new right now is a no.</button>
+      </div>
+    </div>
+    <div class="thread" id="thread" aria-live="polite"></div>
+  </div>
+</main>
+
+<div class="composer-wrap">
+  <div class="col">
+    <form class="composer" id="form">
+      <textarea id="input" rows="1" placeholder="What did the client say?" aria-label="What did the client say?"></textarea>
+      <button class="send" id="send" type="submit" aria-label="Send" disabled>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </form>
+    <p class="fine">Prototype running on Gemini's free tier - don't paste client names or confidential details. Answers come only from the Bible.</p>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var history = [];
+  var busy = false;
+
+  // ---------- Theme ----------
+  function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+  try { applyTheme(localStorage.getItem("bible-theme")); } catch (e) {}
+  $("themeBtn").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = dark ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("bible-theme", next); } catch (e) {}
+  });
+
+  function esc(s) { return String(s || "").replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); }
+  function scrollDown() { $("scroll").scrollTo({ top: $("scroll").scrollHeight, behavior: "smooth" }); }
+
+  // ---------- Composer ----------
+  var input = $("input");
+  function resize() { input.style.height = "auto"; input.style.height = Math.min(input.scrollHeight, 180) + "px"; }
+  input.addEventListener("input", function () { resize(); $("send").disabled = !input.value.trim() || busy; });
+  input.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); $("form").requestSubmit(); }
+  });
+  $("form").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var text = input.value.trim();
+    if (text && !busy) ask(text);
+  });
+  $("examples").addEventListener("click", function (e) {
+    var b = e.target.closest(".example"); if (!b) return;
+    ask(b.lastChild.textContent.trim());
+  });
+  $("newChat").addEventListener("click", function () {
+    history = []; $("thread").innerHTML = ""; $("welcome").hidden = false; $("newChat").hidden = true; input.focus();
+  });
+
+  // ---------- Rendering ----------
+  function renderAnswer(r) {
+    var warn = !r.confident;
+    var html = '<div class="card">' +
+      '<div class="card-top">' +
+        '<span class="pill">' + esc(r.type) + '</span>' +
+        (warn ? '<span class="pill warn">Not fully covered</span>' : '') +
+        '<button class="copy" type="button" data-copy="' + esc(r.answer) + '">' +
+          '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button>' +
+      '</div>' +
+      '<p class="label" style="margin-top:0">What to say</p><p class="say">' + esc(r.answer) + '</p>' +
+      (r.ask_next ? '<p class="label">Ask next</p><p class="ask">' + esc(r.ask_next) + '</p>' : '') +
+      (r.details && r.details.length ? '<p class="label">Good to know</p><ul>' + r.details.map(function (d) { return '<li>' + esc(d) + '</li>'; }).join("") + '</ul>' : '') +
+      (r.sources && r.sources.length ? '<p class="label">From the Bible</p><div class="sources">' + r.sources.map(function (s) {
+        return '<a href="/#' + encodeURIComponent(s.id) + '" target="_blank" rel="noopener">' + esc(s.title) + ' <small>· ' + esc(s.part) + '</small></a>';
+      }).join("") + '</div>' : '') +
+      (warn ? '<div class="gap-note"><b>Gap:</b> the Bible doesn\'t fully cover this yet. In the full program, it would be flagged to the ' + esc(r.owner || "section") + ' owner so the answer gets added.</div>' : '') +
+      (r.owner ? '<div class="card-foot">Owner: ' + esc(r.owner) + '</div>' : '') +
+    '</div>';
+    return html;
+  }
+
+  function ask(text) {
+    busy = true;
+    $("welcome").hidden = true; $("newChat").hidden = false;
+    input.value = ""; resize(); $("send").disabled = true;
+
+    var thread = $("thread");
+    thread.insertAdjacentHTML("beforeend", '<div class="msg-user">' + esc(text) + '</div>');
+    var slot = document.createElement("div");
+    slot.innerHTML = '<div class="thinking"><span class="dots"><span></span><span></span><span></span></span>Searching the Bible…</div>';
+    thread.appendChild(slot);
+    scrollDown();
+
+    fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message: text, history: history })
+    })
+      .then(function (r) { return r.json().then(function (d) { if (!r.ok) throw new Error(d.error || "Request failed"); return d; }); })
+      .then(function (d) {
+        slot.innerHTML = renderAnswer(d);
+        history.push({ q: text, a: d.answer });
+      })
+      .catch(function (err) {
+        slot.innerHTML = '<p class="error">Something went wrong: ' + esc(err.message) + '</p>';
+      })
+      .then(function () { busy = false; $("send").disabled = !input.value.trim(); input.focus(); scrollDown(); });
+  }
+
+  $("thread").addEventListener("click", function (e) {
+    var b = e.target.closest(".copy"); if (!b || !navigator.clipboard) return;
+    navigator.clipboard.writeText(b.dataset.copy).then(function () {
+      var old = b.innerHTML; b.textContent = "Copied"; setTimeout(function () { b.innerHTML = old; }, 1400);
+    });
+  });
+
+  input.focus();
+})();
+</script>
+</body>
+</html>
