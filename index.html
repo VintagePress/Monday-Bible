@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>monday AI Bible</title>
+<meta name="description" content="Prototype knowledge base for CSMs: how monday AI works, how it's controlled, how to build trust, and how to read readiness.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg-soft: #f6f7fb;
+    --text: #323338;
+    --muted: #676879;
+    --border: #d0d4e4;
+    --line: #e6e9ef;
+    --link: #0073ea;
+    --primary: #6161ff;
+    --badge-bg: #e6e9ef;
+    --badge-text: #323338;
+    --ok: #00854d;
+    --review: #b57600;
+    --gap: #d83a52;
+    --mark: #fff1b8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #181b34; --bg-soft: #1f2340; --text: #e3e5f0; --muted: #a3a7bd;
+      --border: #3a3f63; --line: #2c3052; --link: #5aa9ff; --primary: #8f8fff;
+      --badge-bg: #2c3052; --badge-text: #e3e5f0;
+      --ok: #4fd18b; --review: #f2b84b; --gap: #ff7d91; --mark: #5c4d14;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #181b34; --bg-soft: #1f2340; --text: #e3e5f0; --muted: #a3a7bd;
+    --border: #3a3f63; --line: #2c3052; --link: #5aa9ff; --primary: #8f8fff;
+    --badge-bg: #2c3052; --badge-text: #e3e5f0;
+    --ok: #4fd18b; --review: #f2b84b; --gap: #ff7d91; --mark: #5c4d14;
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-padding-top: 130px; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.65 "Figtree", -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+  h1, h2, h3 { font-family: "Poppins", "Figtree", sans-serif; }
+
+  /* ---------- Header ---------- */
+  .site-header { background: var(--bg); border-bottom: 1px solid var(--line); }
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 0 24px; }
+  @media (max-width: 600px) { .wrap { padding: 0 16px; } }
+  .header-row { height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; color: var(--text); }
+  .brand:hover { text-decoration: none; }
+  .brand-icon { color: var(--primary); flex: none; }
+  .brand-name { font-family: "Poppins", sans-serif; font-size: 19px; font-weight: 500; letter-spacing: -.01em; }
+  .brand-name span { font-weight: 300; }
+  .header-actions { display: flex; align-items: center; gap: 10px; }
+  .btn-outline {
+    border: 1px solid var(--primary); color: var(--primary); background: transparent;
+    border-radius: 20px; padding: 6px 16px; font: 500 14px "Figtree", sans-serif; cursor: pointer; white-space: nowrap;
+  }
+  .btn-outline:hover { background: color-mix(in srgb, var(--primary) 8%, transparent); text-decoration: none; }
+  .theme-btn { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 6px; display: grid; place-items: center; }
+  .theme-btn:hover { color: var(--text); background: var(--bg-soft); }
+  @media (max-width: 600px) { .btn-outline { display: none; } }
+
+  /* ---------- Sub bar: breadcrumb + search ---------- */
+  .subbar { background: var(--bg-soft); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; }
+  .subbar-row { min-height: 58px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .crumbs { font-size: 14px; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .crumbs span { color: var(--muted); margin: 0 6px; }
+  .search { position: relative; width: 340px; flex: none; }
+  @media (max-width: 700px) { .crumbs { display: none; } .search { width: 100%; } }
+  .search svg { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); pointer-events: none; }
+  #q {
+    width: 100%; height: 38px; border: 1px solid var(--border); border-radius: 6px; background: var(--bg); color: var(--text);
+    font: 15px "Figtree", sans-serif; padding: 0 12px 0 38px;
+  }
+  #q::placeholder { color: var(--muted); }
+  #q:focus { outline: none; border-color: var(--link); }
+  .results {
+    position: absolute; top: calc(100% + 6px); right: 0; width: min(440px, calc(100vw - 32px));
+    background: var(--bg); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 6px 20px rgba(0,0,0,.12);
+    max-height: 65vh; overflow-y: auto; padding: 6px; display: none;
+  }
+  .results.show { display: block; }
+  .result { display: block; width: 100%; text-align: left; border: 0; background: none; color: var(--text); padding: 9px 10px; border-radius: 6px; cursor: pointer; font: inherit; }
+  .result:hover, .result.active { background: var(--bg-soft); }
+  .r-part { display: block; font-size: 12px; color: var(--muted); }
+  .r-title { display: block; font-weight: 600; font-size: 14.5px; line-height: 1.4; }
+  .r-snip { display: block; font-size: 13px; color: var(--muted); line-height: 1.45; }
+  .no-results { padding: 10px; color: var(--muted); font-size: 14px; }
+  mark { background: var(--mark); color: inherit; border-radius: 2px; }
+
+  /* ---------- Article layout ---------- */
+  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 64px; padding-top: 44px; padding-bottom: 80px; }
+  .layout > * { min-width: 0; }
+  @media (max-width: 960px) { .layout { grid-template-columns: minmax(0, 1fr); } .onpage { display: none; } }
+  article { max-width: 720px; }
+
+  h1 { font-size: 36px; font-weight: 400; line-height: 1.25; letter-spacing: -.01em; margin: 0 0 18px; }
+  @media (max-width: 600px) { h1 { font-size: 30px; } }
+  .tags-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding-bottom: 18px; border-bottom: 1px solid var(--line); margin-bottom: 24px; }
+  .tag { border: 1px solid var(--text); border-radius: 16px; padding: 1px 12px; font-size: 14px; color: var(--text); }
+  a.tag:hover { text-decoration: none; background: var(--bg-soft); }
+  .read-time { margin-left: auto; color: var(--muted); font-size: 14px; }
+
+  .infobox { background: var(--bg-soft); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin: 0 0 24px; }
+  .infobox-title { font-weight: 600; margin: 0 0 6px; }
+  .infobox-row { display: flex; align-items: center; gap: 8px; color: var(--text); }
+  .infobox-row svg { color: var(--muted); flex: none; }
+
+  article p { margin: 0 0 14px; }
+  article ul, article ol { margin: 0 0 14px; padding-left: 22px; }
+  article li { margin: 5px 0; }
+
+  .part { margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--line); }
+  .part-label { font-size: 14px; color: var(--muted); margin: 0 0 2px; }
+  .part h2 { font-size: 28px; font-weight: 400; margin: 0 0 12px; line-height: 1.3; }
+  .part-intro { color: var(--text); }
+
+  section.topic { margin-top: 44px; border-radius: 6px; transition: background-color .8s, box-shadow .8s; }
+  section.topic.flash { background: var(--bg-soft); box-shadow: 0 0 0 14px var(--bg-soft); }
+  section.topic h3 { font-size: 20px; font-weight: 500; margin: 0 0 4px; line-height: 1.4; }
+  .meta { font-size: 13px; color: var(--muted); margin: 0 0 14px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+  .st-ok .dot { background: var(--ok); }
+  .st-review .dot { background: var(--review); }
+  .st-gap .dot { background: var(--gap); }
+  .st-draft .dot { background: var(--muted); }
+  .st { display: inline-flex; align-items: center; gap: 5px; }
+  .label { font-weight: 700; font-size: 15px; margin: 18px 0 8px; }
+
+  /* Numbered steps, like help center how-tos */
+  ol.steps { list-style: none; padding: 0; counter-reset: s; }
+  ol.steps li { counter-increment: s; display: flex; gap: 12px; align-items: baseline; margin: 10px 0; }
+  ol.steps li::before {
+    content: counter(s); flex: none; width: 24px; height: 24px; border-radius: 4px; background: var(--badge-bg); color: var(--badge-text);
+    font-size: 13px; font-weight: 600; display: inline-grid; place-items: center; position: relative; top: -1px;
+  }
+
+  .note { margin: 0 0 14px; }
+  .note b { font-weight: 700; }
+  .callout { border-left: 3px solid var(--review); padding: 2px 0 2px 14px; margin: 0 0 14px; color: var(--text); }
+  .callout.gap { border-left-color: var(--gap); }
+  .callout.draft { border-left-color: var(--border); color: var(--muted); }
+
+  table { border-collapse: collapse; width: 100%; font-size: 15px; margin: 4px 0 16px; display: block; overflow-x: auto; }
+  th, td { text-align: left; padding: 10px 14px; border: 1px solid var(--line); vertical-align: top; }
+  thead th { background: var(--bg-soft); font-weight: 600; }
+  tbody th { font-weight: 600; background: var(--bg-soft); white-space: nowrap; }
+  td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  tr.total td { font-weight: 700; }
+
+  .sources { font-size: 14px; color: var(--muted); margin: 0; }
+  .sources a { margin-right: 4px; }
+
+  /* Part overview cards */
+  .parts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 8px 0 0; }
+  @media (max-width: 600px) { .parts { grid-template-columns: 1fr; } }
+  .parts a { display: block; border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; color: var(--text); }
+  .parts a:hover { border-color: var(--border); background: var(--bg-soft); text-decoration: none; }
+  .parts b { display: block; font-family: "Poppins", sans-serif; font-weight: 500; margin-bottom: 2px; }
+  .parts span { font-size: 14px; color: var(--muted); line-height: 1.5; display: block; }
+
+  /* ---------- On this page ---------- */
+  .onpage { position: sticky; top: 100px; align-self: start; max-height: calc(100vh - 120px); overflow-y: auto; }
+  .onpage-title { font-weight: 600; margin: 0 0 10px; }
+  .onpage ul { list-style: none; padding: 0; margin: 0; }
+  .onpage > ul > li { margin-bottom: 6px; }
+  .onpage a { color: var(--muted); font-size: 14px; line-height: 1.45; display: block; padding: 3px 0; }
+  .onpage a:hover { color: var(--text); text-decoration: none; }
+  .onpage a.active { color: var(--link); }
+  .onpage ul ul { padding-left: 12px; border-left: 1px solid var(--line); margin: 2px 0 8px; display: none; }
+  .onpage li.open > ul { display: block; }
+  .onpage li.open > a { color: var(--text); font-weight: 600; }
+  .onpage-meta { border-top: 1px solid var(--line); margin-top: 16px; padding-top: 14px; font-size: 13px; color: var(--muted); }
+  .legend-item { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+
+  /* ---------- Bottom ---------- */
+  .help { background: var(--bg-soft); border-top: 1px solid var(--line); padding: 44px 0 52px; }
+  .help h2 { font-size: 24px; font-weight: 400; margin: 0 0 4px; text-align: center; }
+  .help > .wrap > p { text-align: center; color: var(--muted); margin: 0 0 24px; }
+  .help-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .help-grid { grid-template-columns: 1fr; } }
+  .help-card { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 18px 20px; }
+  .help-card b { display: block; font-family: "Poppins", sans-serif; font-weight: 500; margin-bottom: 4px; }
+  .help-card p { margin: 0; font-size: 14px; color: var(--muted); }
+  .disclaimer { text-align: center; font-size: 13px; color: var(--muted); padding: 18px 16px 28px; background: var(--bg-soft); }
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="#top" aria-label="monday AI Bible home">
+      <svg class="brand-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5V5a2 2 0 0 1 2-2h13v16H6.5a2.5 2.5 0 0 0-2.5 2.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H19v-3"/><path d="M9 8h6"/></svg>
+      <span class="brand-name">AI Bible <span>for CSMs</span></span>
+    </a>
+    <div class="header-actions">
+      <a class="btn-outline" href="#help">Ask the Bible bot</a>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle dark mode">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="subbar">
+  <div class="wrap subbar-row">
+    <div class="crumbs">CS Enablement<span>&gt;</span>AI adoption<span>&gt;</span>AI Bible</div>
+    <div class="search" role="search">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <input id="q" type="search" autocomplete="off" placeholder="Search" aria-label="Search the Bible">
+      <div class="results" id="results" role="listbox"></div>
+    </div>
+  </div>
+</div>
+
+<div class="wrap layout" id="top">
+  <article id="content">
+
+    <h1>monday AI Bible</h1>
+    <div class="tags-row">
+      <span class="tag">AI adoption</span>
+      <span class="tag">Prototype v0.1</span>
+      <span class="read-time">18 min read</span>
+    </div>
+
+    <div class="infobox">
+      <p class="infobox-title">Who this is for</p>
+      <div class="infobox-row">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+        <span>CSMs and account managers helping clients adopt monday AI</span>
+      </div>
+    </div>
+
+    <p>This is the single source of truth for everything a CSM needs when talking to a client about monday AI - how it works, how it's controlled, how to build trust, and how to tell if the timing is right.</p>
+    <p>It has four parts, matching the four types of objections CSMs hear. When you hear an objection, figure out which type it is and go to that part.</p>
+
+    <div class="parts">
+      <a href="#part-1"><b>1. Information Gaps</b><span>How monday AI works - data, security, models, pricing and agents.</span></a>
+      <a href="#part-2"><b>2. Control</b><span>Every control the client has - on/off, permissions, limits, approvals, logs.</span></a>
+      <a href="#part-3"><b>3. Trust</b><span>How to prove value - reliability, ROI and pilots.</span></a>
+      <a href="#part-4"><b>4. Readiness</b><span>How to tell "not now" from "no", and what to do with each.</span></a>
+    </div>
+
+    <!-- =================== PART 1 =================== -->
+    <div class="part" id="part-1">
+      <p class="part-label">Part 1</p>
+      <h2>Information Gaps</h2>
+      <p class="part-intro">How monday AI works. These are the facts - the goal is that every CSM gives the same answer, every time, with a link to the source.</p>
+
+      <section class="topic" id="ai-overview">
+        <h3>What monday AI includes</h3>
+        <div class="meta">Owner: Product · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>monday AI is not one feature - it's a set of AI capabilities across the platform, all measured in the same AI credits:</p>
+        <ul>
+          <li><b>AI blocks</b> - AI steps inside boards and automations, like summarize, categorize, extract or write.</li>
+          <li><b>monday sidekick</b> - an AI assistant that works with the user's boards and data.</li>
+          <li><b>monday agents</b> - AI agents that take actions in the account, not just answer.</li>
+          <li><b>AI workflows</b> - multi-step workflows that combine AI steps and human approvals.</li>
+          <li><b>AI Notetaker</b> - records and summarizes meetings.</li>
+          <li><b>monday vibe</b> - builds custom apps from a prompt.</li>
+        </ul>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/35277848309394-The-pricing-model-for-monday-AI-portfolio" target="_blank" rel="noopener">The pricing model for monday AI portfolio</a></p>
+      </section>
+
+      <section class="topic" id="data-training">
+        <h3>How client data is used (and not used)</h3>
+        <div class="meta">Owner: Security · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>Client data is <b>not used to train AI models</b> - not by monday.com, and not by the AI model providers.</p>
+        <ul>
+          <li>The model providers work under <b>Zero Data Retention</b>. They don't store data processed through monday AI, and the agreements don't allow them to use it for anything other than processing the request.</li>
+          <li>When models run on monday-controlled cloud services (AWS Bedrock, Azure AI, Google Vertex), the model provider has no access to the data at all.</li>
+          <li>The client owns both the content they put into monday AI and the content it generates.</li>
+          <li>Data is encrypted at rest (AES-256) and in transit (TLS 1.3).</li>
+        </ul>
+        <p class="label">Two details legal teams usually find</p>
+        <p>It's better if the CSM mentions these before the client's legal team finds them:</p>
+        <ul>
+          <li><b>60-day access for improvement.</b> monday.com may temporarily access interaction data (up to 60 days) to monitor and improve the service. It's never shared or used for training. An admin can opt out by emailing ai-support@monday.com or through their account representative (up to 5 business days).</li>
+          <li><b>Some models keep data for 30 days.</b> A few models (for example Anthropic's Fable 5) may keep input and output for 30 days, only for harm prevention and never for training. These models are enabled in the admin settings.</li>
+        </ul>
+        <p class="sources">Sources: <a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a> · <a href="https://monday.com/w/ai-trust-center" target="_blank" rel="noopener">AI Trust Center</a> · <a href="https://monday.com/l/legal/ai/" target="_blank" rel="noopener">AI Terms</a></p>
+      </section>
+
+      <section class="topic" id="prompt-flow">
+        <h3>What happens to a request, step by step</h3>
+        <div class="meta">Owner: Security · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <ol class="steps">
+          <li><span>A user (or an agent) sends a request inside monday.</span></li>
+          <li><span>monday AI only uses data the user is allowed to see. If they can't access a board or column, AI won't use it.</span></li>
+          <li><span>The request goes through monday's AI Gateway, which applies rate limits, token limits, moderation and security checks.</span></li>
+          <li><span>An AI model processes the request through a managed cloud service, under zero retention.</span></li>
+          <li><span>The result comes back into monday. The model provider doesn't keep the data or train on it.</span></li>
+        </ol>
+        <p class="sources">Source: <a href="https://monday.com/w/ai-trust-center" target="_blank" rel="noopener">AI Trust Center</a> - includes a data flow diagram that can be shared with security teams</p>
+      </section>
+
+      <section class="topic" id="models">
+        <h3>AI models and sub-processors</h3>
+        <div class="meta">Owner: Security · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>monday.com uses several model providers and picks the right model for each use case:</p>
+        <table>
+          <thead><tr><th>Provider</th><th>Models</th><th>Where they run</th></tr></thead>
+          <tbody>
+            <tr><td>Anthropic</td><td>Claude series</td><td>Google Vertex, AWS Bedrock, direct</td></tr>
+            <tr><td>OpenAI</td><td>GPT series</td><td>Azure AI, AWS Bedrock, direct</td></tr>
+            <tr><td>Google</td><td>Gemini</td><td>Google Vertex</td></tr>
+            <tr><td>NVIDIA</td><td>Nemotron</td><td>Nebius</td></tr>
+          </tbody>
+        </table>
+        <ul>
+          <li>Every vendor goes through a vetting process by monday's security and legal teams before it's used.</li>
+          <li>The official, up-to-date list is the <b>sub-processor list</b>. When a security team asks for it, send the AI sub-processor page together with the general list.</li>
+          <li>Clients can't bring their own model or API key to monday AI today.</li>
+        </ul>
+        <p class="sources">Sources: <a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a> · <a href="https://monday.com/l/uncategorized/ai-sub-processors-in-depth-information/" target="_blank" rel="noopener">AI sub-processors</a> · <a href="https://monday.com/l/privacy/subprocessors/" target="_blank" rel="noopener">Sub-processor list</a></p>
+      </section>
+
+      <section class="topic" id="residency">
+        <h3>Data residency</h3>
+        <div class="meta">Owner: Legal · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>Data processed by monday AI follows the <b>same data region settings</b> as the client's monday account. There are separate sub-processor lists per region (for example EU and APAC).</p>
+        <p>Before promising anything, check which region the client's account is in, and send them the sub-processor list for that region.</p>
+        <p class="sources">Sources: <a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a> · <a href="https://monday.com/l/privacy/subprocessors/" target="_blank" rel="noopener">Sub-processor list</a></p>
+      </section>
+
+      <section class="topic" id="certifications">
+        <h3>Certifications and the security pack</h3>
+        <div class="meta">Owner: Security · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>monday.com holds ISO 27001, 27017, 27018 and 27701, SOC 1 Type II, SOC 2 Type II and SOC 3, and is GDPR and CCPA compliant. monday AI is <b>HIPAA compliant</b> for clients who signed a BAA, and AI features are included in monday's external penetration tests.</p>
+        <p class="label">The security pack</p>
+        <p>When a client's security or compliance team gets involved, send everything in one package instead of answering questions one by one:</p>
+        <ol class="steps">
+          <li><span><a href="https://monday.com/w/ai-trust-center" target="_blank" rel="noopener">AI Trust Center</a></span></li>
+          <li><span><a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a> (data practices and security)</span></li>
+          <li><span><a href="https://monday.com/l/uncategorized/ai-sub-processors-in-depth-information/" target="_blank" rel="noopener">AI sub-processor list</a>, plus the list for the client's region</span></li>
+          <li><span><a href="https://monday.com/l/legal/ai/" target="_blank" rel="noopener">monday AI Terms</a></span></li>
+        </ol>
+        <p>If they have questions beyond this, bring in the Security team rather than answering alone.</p>
+        <p class="sources">Sources: <a href="https://monday.com/trustcenter/faqs/" target="_blank" rel="noopener">Trust Center FAQ</a> · <a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a></p>
+      </section>
+
+      <section class="topic" id="pricing">
+        <h3>How AI pricing and credits work</h3>
+        <div class="meta">Owner: Finance · <span class="st st-review"><i class="dot"></i>Needs owner review</span></div>
+        <p><b>Seats cover the people. AI credits cover the AI.</b> AI credits are one unit of measure across all monday AI capabilities - there are no separate add-ons per feature.</p>
+        <p>Each plan has a minimum monthly amount of credits, and the client can choose a bigger bucket:</p>
+        <table>
+          <thead><tr><th>Plan</th><th>Minimum per month</th><th>Bucket options</th></tr></thead>
+          <tbody>
+            <tr><td>Basic</td><td>1,000</td><td>1,000</td></tr>
+            <tr><td>Standard</td><td>2,000</td><td>2,000 / 4,000 / 8,000</td></tr>
+            <tr><td>Pro</td><td>3,000</td><td>3,000 / 4,000 / 8,000 / 20,000</td></tr>
+            <tr><td>Enterprise</td><td colspan="2">Through the sales team</td></tr>
+          </tbody>
+        </table>
+        <p>If an account runs out of credits before the end of the billing cycle, the admin can move to the next bucket without changing seats: <b>Administration &gt; AI governance &gt; Credits Usage</b>.</p>
+        <p class="note"><b>Note:</b> this model applies to customers who joined the monday AI work platform on or after May 6, 2026. It doesn't apply to monday CRM, monday dev or monday service.</p>
+        <div class="callout"><b>Owner to confirm:</b> how the model applies to existing customers who joined before May 6, 2026 - most CSM accounts are in this group, so CSMs need one clear answer here.</div>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/35277848309394-The-pricing-model-for-monday-AI-portfolio" target="_blank" rel="noopener">The pricing model for monday AI portfolio</a></p>
+      </section>
+
+      <section class="topic" id="credit-costs">
+        <h3>How many credits each feature uses</h3>
+        <div class="meta">Owner: Finance · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <table>
+          <thead><tr><th>Feature</th><th>Credits</th></tr></thead>
+          <tbody>
+            <tr><td>AI blocks</td><td>8 credits per action. All actions on the same item within 24 hours count once. Subitems count separately.</td></tr>
+            <tr><td>AI Notetaker</td><td>120 credits per meeting hour</td></tr>
+            <tr><td>monday sidekick</td><td>Per message: simple ~10-30, intermediate ~30-80, complex ~80-150, extra complex 150+</td></tr>
+            <tr><td>monday agents</td><td>Per task: simple ~10-50, intermediate ~50-150, complex ~150-250, extra complex 250+. One run can include several tasks.</td></tr>
+            <tr><td>AI workflows</td><td>Per AI-powered run, based on complexity. Active workflow limits: Standard 3, Pro 20, Enterprise 250.</td></tr>
+            <tr><td>monday vibe</td><td>Credits per prompt while building, plus a paid app bucket to publish, plus credits when a published app uses AI</td></tr>
+          </tbody>
+        </table>
+        <p class="note"><b>Note:</b> credit usage is subject to change, and AI features aren't available on free accounts.</p>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/35277848309394-The-pricing-model-for-monday-AI-portfolio" target="_blank" rel="noopener">The pricing model for monday AI portfolio</a></p>
+      </section>
+
+      <section class="topic" id="estimating">
+        <h3>Estimating how many credits a client needs</h3>
+        <div class="meta">Owner: Finance · <span class="st st-gap"><i class="dot"></i>Product gap</span></div>
+        <p>"It depends on complexity" is not an answer a CFO can work with. There's no calculator yet, but the published rates above are enough for a reasonable estimate:</p>
+        <ol class="steps">
+          <li><span>Start from the 1-2 workflows the client actually wants to start with, not "AI in general".</span></li>
+          <li><span>Estimate the monthly volume of each, and multiply by the rates above.</span></li>
+          <li><span>Pick the bucket that covers it, and set a usage limit (see <a href="#usage-limits">Usage limits</a>).</span></li>
+          <li><span>After a month, replace the estimate with real numbers from the <a href="#usage-visibility">credit usage chart</a>.</span></li>
+        </ol>
+        <p class="label">Example: a 10-person team, one month</p>
+        <table>
+          <thead><tr><th>Use</th><th>Volume</th><th>Credits</th></tr></thead>
+          <tbody>
+            <tr><td>AI Notetaker on client meetings</td><td>8 meeting hours x 120</td><td class="num">960</td></tr>
+            <tr><td>AI blocks categorizing incoming requests</td><td>250 items x 8</td><td class="num">2,000</td></tr>
+            <tr><td>sidekick questions</td><td>60 messages x ~40</td><td class="num">~2,400</td></tr>
+            <tr><td>A simple agent updating items</td><td>50 tasks x ~30</td><td class="num">~1,500</td></tr>
+            <tr class="total"><td>Total</td><td></td><td class="num">~6,860</td></tr>
+          </tbody>
+        </table>
+        <p>That fits the 8,000 bucket on Standard or Pro, with some room to grow.</p>
+        <div class="callout gap"><b>Product gap:</b> CSMs need a simple credit calculator, so they don't build estimates by hand. Logged for Product.</div>
+      </section>
+
+      <section class="topic" id="agents-vs-automations">
+        <h3>AI vs. the automations clients already have</h3>
+        <div class="meta">Owner: Product · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p><b>Automations</b> follow fixed rules - "when X happens, do Y". They work best when the input is structured and the decision is always the same.</p>
+        <p><b>AI</b> handles what rules can't - reading free text, summarizing, categorizing, writing, and deciding what to do with information that isn't structured.</p>
+        <table>
+          <thead><tr><th></th><th>Automation</th><th>AI</th></tr></thead>
+          <tbody>
+            <tr><th>Example</th><td>When status changes to Done, move the item to Completed</td><td>Read an incoming request, understand it, fill the right columns and draft a reply</td></tr>
+            <tr><th>Input</th><td>Structured - status, date, number</td><td>Unstructured - text, emails, files, meetings</td></tr>
+            <tr><th>Logic</th><td>Fixed rules</td><td>Understands context</td></tr>
+          </tbody>
+        </table>
+        <p>They're not either/or - AI can be a step inside an existing automation. The best places to start are where someone still has to read something and decide what to do with it.</p>
+      </section>
+
+      <section class="topic" id="byoa">
+        <h3>Bring your own agent and MCP</h3>
+        <div class="meta">Owner: Product · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p><b>Bring your own agent</b> means AI agents a client already uses outside monday can work inside monday like a team member - they can be assigned to items and mentioned in updates.</p>
+        <ul>
+          <li>Connected agents use their own API token and only get the workspaces and boards the admin allows.</li>
+          <li>Their credit usage shows up in the account's usage dashboard.</li>
+          <li>Clients without external agents don't need this - monday's own agents work without it.</li>
+        </ul>
+        <p><b>MCP</b> (Model Context Protocol) is the standard way AI assistants like Claude or ChatGPT connect to other tools. monday has a hosted MCP server, so a client's existing AI assistant can read and work with their monday data, within the user's permissions.</p>
+        <p class="sources">Sources: <a href="https://developer.monday.com/api-reference/docs/build-on-monday-with-ai" target="_blank" rel="noopener">Build on monday.com with AI</a> · <a href="https://developer.monday.com/api-reference/docs/monday-mcp-overview" target="_blank" rel="noopener">monday MCP overview</a></p>
+      </section>
+    </div>
+
+    <!-- =================== PART 2 =================== -->
+    <div class="part" id="part-2">
+      <p class="part-label">Part 2</p>
+      <h2>Control</h2>
+      <p class="part-intro">Every control the client has over monday AI. A client asking about control usually wants to move forward - on their own terms. Show them the controls exist, and help them set up a controlled start.</p>
+
+      <section class="topic" id="on-off">
+        <h3>Turning AI on and off</h3>
+        <div class="meta">Owner: Product · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>Account admins can turn monday AI on or off for the whole account. This is the "kill switch" compliance teams ask about.</p>
+        <p class="label">To enable or disable AI on the entire account:</p>
+        <ol class="steps">
+          <li><span>Click the profile picture in the top right corner and choose <b>Administration</b></span></li>
+          <li><span>Open the <b>AI Governance</b> section and select <b>Settings</b></span></li>
+          <li><span>Find the <b>Enable monday AI</b> option and toggle it On or Off</span></li>
+        </ol>
+        <p>When something goes wrong, the client usually doesn't need to turn everything off - on Enterprise they can limit a specific agent, feature or role instead (see <a href="#roles">Who can use what</a>), or deactivate a single agent (see <a href="#agent-directory">Agent directory</a>).</p>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/30934592475410-AI-Permissions" target="_blank" rel="noopener">AI Permissions and Governance</a></p>
+      </section>
+
+      <section class="topic" id="roles">
+        <h3>Who can use what</h3>
+        <div class="meta">Owner: Product · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>By default, when AI is on, all users in the account can use it. On the <b>Enterprise</b> plan, the <b>AI permissions</b> tab lets admins narrow this down:</p>
+        <ul>
+          <li><b>Agents</b> - for each agent type (user agents, monday agents, third-party agents, org agents and external AI connectors), choose which account roles can use it. Permissions can be set per agent, or inherited from the agent type.</li>
+          <li><b>AI features</b> - each feature has its own setting, with the same role selection.</li>
+          <li><b>Workspaces</b> - for sidekick and AI blocks, admins can also choose which workspaces the feature is on or off in.</li>
+        </ul>
+        <p class="note"><b>Note:</b> changing permissions won't stop or break AI blocks or agents that are already running.</p>
+        <p>On other plans, the main way to control who uses how much is <a href="#usage-limits">user limit policies</a>.</p>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/30934592475410-AI-Permissions" target="_blank" rel="noopener">AI Permissions and Governance</a></p>
+      </section>
+
+      <section class="topic" id="permissions">
+        <h3>What AI can see</h3>
+        <div class="meta">Owner: Security · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>monday AI respects the account's existing permissions. Users can only create, view or generate content from things they already have access to - if a user can't see a board or column, AI won't use it.</p>
+        <p>External agents connected to monday only get the workspaces and boards the admin allows.</p>
+        <p>Good practice for a first rollout: start on internal boards, and keep client-facing boards out of scope until the client is comfortable.</p>
+        <p class="sources">Sources: <a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a> · <a href="https://monday.com/w/ai-trust-center" target="_blank" rel="noopener">AI Trust Center</a></p>
+      </section>
+
+      <section class="topic" id="usage-visibility">
+        <h3>Seeing where credits go</h3>
+        <div class="meta">Owner: Finance · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>The <b>Credit Usage</b> tab in AI governance shows the credits used in the current billing cycle and the remaining balance.</p>
+        <ul>
+          <li><b>A forecast chart</b> shows cumulative usage so far, and projects it at the current rate, +10% and +20% - so the client can see early if they're on track to stay within their limit.</li>
+          <li><b>Breakdown by feature and by user</b>, with filters to look at specific users.</li>
+          <li><b>Download</b> of usage data for all users, for the client's finance team.</li>
+        </ul>
+        <p class="note"><b>Note:</b> the forecast chart only appears for accounts paying for AI credits, not for accounts on trial credits.</p>
+        <p>In the first months, suggest a short monthly look at this tab together with the client's admin.</p>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/30934592475410-AI-Permissions" target="_blank" rel="noopener">AI Permissions and Governance</a></p>
+      </section>
+
+      <section class="topic" id="usage-limits">
+        <h3>Usage limits</h3>
+        <div class="meta">Owner: Finance · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>The <b>Usage limits</b> tab lets admins cap AI credits at three levels:</p>
+        <ul>
+          <li><b>Account</b> - the total credits available for the billing cycle.</li>
+          <li><b>Per AI capability</b> - a limit for a specific feature. Each limit is marked <b>Hard</b> or <b>Soft</b>, depending on how it's enforced. Features without a limit use credits as needed until the account limit.</li>
+          <li><b>Per user or department</b> - a default limit for all users, plus separate policies for specific users or departments (for example power users who need more).</li>
+        </ul>
+        <p class="label">When the limit gets close</p>
+        <ul>
+          <li>Admins get notified at <b>80% and 100%</b> of usage.</li>
+          <li>Some AI capabilities keep running for a short time after the limit, so the team can top up before anything is paused.</li>
+          <li>Only AI usage pauses - boards, items and regular automations keep working.</li>
+        </ul>
+        <p class="sources">Sources: <a href="https://support.monday.com/hc/en-us/articles/30934592475410-AI-Permissions" target="_blank" rel="noopener">AI Permissions and Governance</a> · <a href="https://support.monday.com/hc/en-us/articles/35277848309394-The-pricing-model-for-monday-AI-portfolio" target="_blank" rel="noopener">Pricing model</a></p>
+      </section>
+
+      <section class="topic" id="agent-directory">
+        <h3>Agent directory - seeing every agent and what it did</h3>
+        <div class="meta">Owner: Product · <span class="st st-ok"><i class="dot"></i>Verified</span></div>
+        <p>The <b>Agent directory</b> tab gives admins one place to see every AI agent running in the account, with its name, owner, sharing status, current status, what it has access to, creation date and <b>the model it uses</b>.</p>
+        <p>From each agent's menu, admins can:</p>
+        <ul>
+          <li>View the agent's activity</li>
+          <li>Manage its tools (skills and access)</li>
+          <li>Transfer ownership</li>
+          <li>Deactivate or activate it</li>
+        </ul>
+        <p><b>View connections</b> shows who owns each agent, who it's shared with, and which boards it can access.</p>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/30934592475410-AI-Permissions" target="_blank" rel="noopener">AI Permissions and Governance</a></p>
+      </section>
+
+      <section class="topic" id="approvals">
+        <h3>Human approval and logs</h3>
+        <div class="meta">Owner: Product · <span class="st st-review"><i class="dot"></i>Needs owner review</span></div>
+        <ul>
+          <li><b>Approval steps</b> - monday workflows can stop and wait for a named person to approve before continuing.</li>
+          <li><b>Test before live</b> - a workflow can be run before it goes live, so the client sees exactly what it will do.</li>
+          <li><b>Logs</b> - every workflow run is logged step by step, including agent activity.</li>
+        </ul>
+        <p>monday also recommends that users review AI output - another reason to keep a human step at the start.</p>
+        <div class="callout"><b>Owner to confirm:</b> whether every agent type supports an approval step, whether activity logs show the agent's reasoning ("why") and not just the action, and the Legal-approved wording on accountability for AI output.</div>
+        <p class="sources">Sources: <a href="https://monday.com/features/workflows/" target="_blank" rel="noopener">monday workflows</a> · <a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a></p>
+      </section>
+
+      <section class="topic" id="controlled-start">
+        <h3>Pilot: Controlled Start</h3>
+        <div class="meta">Owner: CS Leadership · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>For clients who want to move forward, but in a controlled way. It puts the controls above together into one small, safe start.</p>
+        <table>
+          <tbody>
+            <tr><th>Who</th><td>2-5 users chosen by the client</td></tr>
+            <tr><th>Setup</th><td>A user limit policy for the pilot group, AI limited to selected roles or workspaces (Enterprise), an approval step before actions, internal boards only</td></tr>
+            <tr><th>Success</th><td>Agreed with the client before starting - for example hours saved a week, no errors reaching clients</td></tr>
+            <tr><th>Week 2</th><td>Go over the agent activity and the credit usage chart together</td></tr>
+            <tr><th>Day 30</th><td>Expand to the next group, adjust, or stop</td></tr>
+          </tbody>
+        </table>
+        <div class="callout draft">Draft for CS leadership to review and own. No commercial terms included.</div>
+      </section>
+    </div>
+
+    <!-- =================== PART 3 =================== -->
+    <div class="part" id="part-3">
+      <p class="part-label">Part 3</p>
+      <h2>Trust</h2>
+      <p class="part-intro">How to show monday AI is worth it. Clients here may have been burned before or are tired of the hype - they need proof, not promises. The best proof is the client's own results from a small, measured start.</p>
+
+      <section class="topic" id="reliability">
+        <h3>How reliable is it?</h3>
+        <div class="meta">Owner: Product · <span class="st st-review"><i class="dot"></i>Needs owner review</span></div>
+        <p>What monday does to make AI features reliable:</p>
+        <ul>
+          <li>Every feature is tested before release, including by an internal <b>red team</b> that tries to break it and find edge cases.</li>
+          <li>Features are <b>rolled out gradually</b> to monitor stability before reaching everyone.</li>
+          <li>AI features are included in monday's external penetration tests.</li>
+          <li>Performance and behavior are monitored over time to catch problems early.</li>
+        </ul>
+        <p>Clients don't want to be the test case. The way to handle it is to lower the risk, not argue with the concern - start with generally available features, on an internal workflow, with a human approval step.</p>
+        <div class="callout"><b>Owner to provide:</b> an up-to-date list of which AI features are generally available and which are in beta. CSMs shouldn't guess this.</div>
+        <p class="sources">Source: <a href="https://support.monday.com/hc/en-us/articles/23227256685842-AI-FAQs" target="_blank" rel="noopener">AI FAQs</a></p>
+      </section>
+
+      <section class="topic" id="roi">
+        <h3>Measuring value and ROI</h3>
+        <div class="meta">Owner: CS Enablement · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>"It'll save you time" isn't an answer. The most believable ROI numbers are the client's own - and that needs a baseline measured <b>before</b> starting.</p>
+        <p class="label">What to measure</p>
+        <ul>
+          <li>Time per item (for example, minutes to handle a request)</li>
+          <li>Number of items per week</li>
+          <li>Error or rework rate</li>
+        </ul>
+        <p class="label">Simple formula</p>
+        <p>(time saved per item) x (items per month) x (hourly cost), compared to the credits used in the same period, from the <a href="#usage-visibility">Credit Usage tab</a>.</p>
+      </section>
+
+      <section class="topic" id="side-by-side">
+        <h3>Pilot: Side by Side</h3>
+        <div class="meta">Owner: CS Leadership · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>For clients who need proof. Take one existing workflow, run AI in parallel to it, and compare the results while going over the agent activity together.</p>
+        <table>
+          <tbody>
+            <tr><th>Workflow</th><td>Repetitive, high volume, internal and easy to measure</td></tr>
+            <tr><th>Before</th><td>Measure the baseline (see <a href="#roi">Measuring value</a>)</td></tr>
+            <tr><th>During</th><td>Run AI next to the existing process for 30 days - the original stays in place, so nothing breaks</td></tr>
+            <tr><th>End</th><td>Compare the results and share them with the client's decision maker</td></tr>
+          </tbody>
+        </table>
+        <p>If the client had a failed AI pilot before, ask what went wrong. Usually it was too broad, had no clear success metric, or nobody owned it - design this one to avoid exactly that.</p>
+        <div class="callout draft">Draft for CS leadership to review and own. No commercial terms included.</div>
+      </section>
+
+      <section class="topic" id="champion">
+        <h3>Pilot: Champion User</h3>
+        <div class="meta">Owner: CS Leadership · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>For clients where the issue is people, not technology - senior people who set the tone are resistant, or the last new feature was never adopted.</p>
+        <ol class="steps">
+          <li><span>Choose one person the team listens to - even better if they're a skeptic.</span></li>
+          <li><span>Give them a workflow that solves something that annoys them personally.</span></li>
+          <li><span>After 2-4 weeks, they show the results to the team, in their own words.</span></li>
+        </ol>
+        <div class="callout draft">Draft for CS leadership to review and own. No commercial terms included.</div>
+      </section>
+
+      <section class="topic" id="other-ai-tools">
+        <h3>monday AI and other AI tools</h3>
+        <div class="meta">Owner: Product Marketing · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>General AI assistants (like ChatGPT Enterprise) are great for working with information the user brings to them. monday AI works where the work already lives:</p>
+        <ul>
+          <li><b>Context</b> - it knows the boards, items, owners and status, without copy-pasting.</li>
+          <li><b>Action</b> - it fills columns, updates items and runs inside workflows, not just answers.</li>
+          <li><b>Governance</b> - same permissions, admin controls and usage limits as the rest of the account.</li>
+        </ul>
+        <p>It's not either/or. Through monday's MCP server (see <a href="#byoa">Bring your own agent and MCP</a>), tools like ChatGPT or Claude can connect to monday data, so the client keeps the tools they already pay for.</p>
+      </section>
+
+      <section class="topic" id="scenario-bank">
+        <h3>Scenario Bank - customers like them</h3>
+        <div class="meta">Owner: CS Leadership · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>Clients want to see someone like them who got value. The Scenario Bank is a collection of real customer examples, organized by industry, team size and workflow (for example intake, reporting or client updates). Each example covers what they did, how long it took, and the result. If possible, CS leadership can arrange a reference call.</p>
+        <div class="callout draft">Prototype note: not built yet - this needs real, approved customer stories.</div>
+      </section>
+    </div>
+
+    <!-- =================== PART 4 =================== -->
+    <div class="part" id="part-4">
+      <p class="part-label">Part 4</p>
+      <h2>Readiness</h2>
+      <p class="part-intro">Sometimes it's just not the right time - budget, a migration, too many projects at once. This part isn't the focus of this version, but CSMs need the basics so they don't push at the wrong moment.</p>
+
+      <section class="topic" id="not-now">
+        <h3>"Not now" or "no"?</h3>
+        <div class="meta">Owner: CS Enablement · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>A readiness objection can be real timing, or a soft "no" because the client doesn't see the value yet:</p>
+        <table>
+          <thead><tr><th>Real timing</th><th>Soft "no"</th></tr></thead>
+          <tbody>
+            <tr><td>A specific reason with an end date - the migration ends in Q2, budget opens next quarter</td><td>The reason keeps changing</td></tr>
+            <tr><td>Agrees to a date to come back to it</td><td>Avoids committing to any date</td></tr>
+            <tr><td>Still curious about what AI could do for them</td><td>Not interested in hearing examples</td></tr>
+          </tbody>
+        </table>
+        <p>If it looks like a soft "no", it's usually a trust issue - see <a href="#part-3">Part 3</a>.</p>
+      </section>
+
+      <section class="topic" id="re-engage">
+        <h3>When it's real timing</h3>
+        <div class="meta">Owner: CS Enablement · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <ul>
+          <li>Don't push - it hurts the relationship more than it helps adoption.</li>
+          <li>Set a concrete point to come back to it, like after the migration or at next quarter's budget.</li>
+          <li>If it's a small team with no one to own a rollout, the ask can be much smaller - one workflow, one person.</li>
+        </ul>
+      </section>
+
+      <section class="topic" id="jobs">
+        <h3>Concerns about AI replacing jobs</h3>
+        <div class="meta">Owner: CS Leadership · <span class="st st-draft"><i class="dot"></i>Draft</span></div>
+        <p>This is a sensitive topic, and it deserves its own guidance in a future version. Until then:</p>
+        <ul>
+          <li>Be honest, and don't make promises about the client's organization - it's not ours to promise.</li>
+          <li>Focus on the repetitive work people would be happy to hand off.</li>
+          <li>Bring in CS leadership if the client wants to go deeper.</li>
+        </ul>
+      </section>
+    </div>
+
+  </article>
+
+  <aside class="onpage" aria-label="On this page">
+    <p class="onpage-title">On this page</p>
+    <ul id="onpage"></ul>
+    <div class="onpage-meta">
+      <div class="legend-item"><span class="st st-ok"><i class="dot"></i></span>Verified against monday's pages</div>
+      <div class="legend-item"><span class="st st-review"><i class="dot"></i></span>Needs owner review</div>
+      <div class="legend-item"><span class="st st-gap"><i class="dot"></i></span>Product gap</div>
+      <div class="legend-item"><span class="st st-draft"><i class="dot"></i></span>Draft guidance</div>
+      <p style="margin:10px 0 0">Last reviewed October 14, 2026</p>
+    </div>
+  </aside>
+</div>
+
+<section class="help" id="help">
+  <div class="wrap">
+    <h2>Still have questions?</h2>
+    <p>If the answer isn't here, it should be - every gap gets logged and sent to the right owner.</p>
+    <div class="help-grid">
+      <div class="help-card"><b>Ask the Bible bot</b><p>Paste what the client said and get an answer from this Bible, with a link to the section. (Coming next.)</p></div>
+      <div class="help-card"><b>Ask the owner</b><p>Each section has an owner - Legal, Security, Finance, Product or CS Leadership. Reach out to them directly.</p></div>
+      <div class="help-card"><b>Suggest a change</b><p>Found something outdated or missing? Flag it, so the owner can update it for everyone.</p></div>
+    </div>
+  </div>
+</section>
+<div class="disclaimer">Prototype built for a home assignment - not an official monday.com resource. Based on monday.com's public help center and trust pages as of October 2026.</div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+
+  // ---------- Theme ----------
+  function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+  try { applyTheme(localStorage.getItem("bible-theme")); } catch (e) {}
+  $("themeBtn").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = dark ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("bible-theme", next); } catch (e) {}
+  });
+
+  // ---------- "On this page" built from the content ----------
+  var parts = Array.prototype.slice.call(document.querySelectorAll(".part"));
+  var topics = Array.prototype.slice.call(document.querySelectorAll("section.topic"));
+  $("onpage").innerHTML = parts.map(function (p) {
+    return '<li data-part="' + p.id + '"><a href="#' + p.id + '">' + p.querySelector("h2").textContent + '</a><ul>' +
+      Array.prototype.map.call(p.querySelectorAll("section.topic"), function (t) {
+        return '<li><a href="#' + t.id + '" data-id="' + t.id + '">' + t.querySelector("h3").textContent + '</a></li>';
+      }).join("") + '</ul></li>';
+  }).join("");
+
+  function updateActive() {
+    var cur = null, curPart = parts[0].id;
+    topics.forEach(function (t) { if (t.getBoundingClientRect().top < 220) cur = t.id; });
+    parts.forEach(function (p) { if (p.getBoundingClientRect().top < 220) curPart = p.id; });
+    Array.prototype.forEach.call(document.querySelectorAll(".onpage a[data-id]"), function (a) { a.classList.toggle("active", a.dataset.id === cur); });
+    Array.prototype.forEach.call(document.querySelectorAll(".onpage li[data-part]"), function (li) { li.classList.toggle("open", li.dataset.part === curPart); });
+  }
+  addEventListener("scroll", updateActive, { passive: true });
+  updateActive();
+
+  // ---------- Search: jumps to the right section ----------
+  var index = topics.map(function (t) {
+    var part = t.closest(".part");
+    return { id: t.id, title: t.querySelector("h3").textContent, part: part.querySelector("h2").textContent, text: t.textContent.replace(/\s+/g, " ").trim() };
+  });
+  function esc(s) { return s.replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function reEsc(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); }
+  function search(q) {
+    var terms = q.toLowerCase().split(/\s+/).filter(Boolean);
+    if (!terms.length) return [];
+    return index.map(function (e) {
+      var title = e.title.toLowerCase(), text = e.text.toLowerCase(), score = 0;
+      for (var i = 0; i < terms.length; i++) {
+        var inTitle = title.indexOf(terms[i]) !== -1;
+        if (!inTitle && text.indexOf(terms[i]) === -1) return null;
+        score += inTitle ? 10 : 1;
+      }
+      return { e: e, score: score, terms: terms };
+    }).filter(Boolean).sort(function (a, b) { return b.score - a.score; }).slice(0, 8);
+  }
+  function snippet(text, terms) {
+    var lower = text.toLowerCase(), pos = -1;
+    for (var i = 0; i < terms.length && pos === -1; i++) pos = lower.indexOf(terms[i]);
+    var start = Math.max(0, pos - 50);
+    var out = esc((start > 0 ? "…" : "") + text.substr(start, 140) + "…");
+    terms.forEach(function (t) { if (t.length > 1) out = out.replace(new RegExp("(" + reEsc(esc(t)) + ")", "gi"), "<mark>$1</mark>"); });
+    return out;
+  }
+  var current = [], activeIdx = 0;
+  function showResults(q) {
+    current = search(q); activeIdx = 0;
+    if (!q.trim()) { $("results").classList.remove("show"); return; }
+    $("results").innerHTML = current.length
+      ? current.map(function (r, i) {
+          return '<button type="button" class="result' + (i === 0 ? " active" : "") + '" data-id="' + r.e.id + '" role="option">' +
+            '<span class="r-part">' + esc(r.e.part) + '</span><span class="r-title">' + esc(r.e.title) + '</span>' +
+            '<span class="r-snip">' + snippet(r.e.text, r.terms) + '</span></button>';
+        }).join("")
+      : '<div class="no-results">No results. If this topic is missing, flag it so an owner can add it.</div>';
+    $("results").classList.add("show");
+  }
+  function jumpTo(id) {
+    var el = document.getElementById(id); if (!el) return;
+    $("results").classList.remove("show"); $("q").blur();
+    history.replaceState(null, "", "#" + id);
+    el.scrollIntoView({ behavior: "smooth", block: "start" });
+    el.classList.add("flash"); setTimeout(function () { el.classList.remove("flash"); }, 1600);
+  }
+  $("q").addEventListener("input", function (e) { showResults(e.target.value); });
+  $("q").addEventListener("focus", function (e) { if (e.target.value) showResults(e.target.value); });
+  $("q").addEventListener("keydown", function (e) {
+    var items = $("results").querySelectorAll(".result");
+    if ((e.key === "ArrowDown" || e.key === "ArrowUp") && items.length) {
+      e.preventDefault();
+      activeIdx = (activeIdx + (e.key === "ArrowDown" ? 1 : -1) + items.length) % items.length;
+      items.forEach(function (b, i) { b.classList.toggle("active", i === activeIdx); });
+      items[activeIdx].scrollIntoView({ block: "nearest" });
+    } else if (e.key === "Enter" && current[activeIdx]) { jumpTo(current[activeIdx].e.id); }
+    else if (e.key === "Escape") { $("results").classList.remove("show"); e.target.blur(); }
+  });
+  $("results").addEventListener("click", function (e) { var b = e.target.closest(".result"); if (b) jumpTo(b.dataset.id); });
+  document.addEventListener("click", function (e) { if (!e.target.closest(".search")) $("results").classList.remove("show"); });
+  document.addEventListener("keydown", function (e) { if (e.key === "/" && document.activeElement !== $("q")) { e.preventDefault(); $("q").focus(); } });
+})();
+</script>
+</body>
+</html>
