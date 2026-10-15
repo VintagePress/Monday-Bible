@@ -1,3 +1,7 @@
 # macOS metadata files (created on external drives)
 ._*
 .DS_Store
+
+# Secrets and local Vercel settings - never commit
+.env*
+.vercel/
