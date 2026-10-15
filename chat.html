@@ -53,11 +53,7 @@
   .welcome { padding: 72px 0 24px; text-align: center; }
   .welcome h1 { font-family: "Poppins", sans-serif; font-weight: 400; font-size: 36px; margin: 0 0 10px; letter-spacing: -.01em; }
   .welcome p { color: var(--muted); font-size: 17px; margin: 0 auto 32px; max-width: 520px; }
-  .examples { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; text-align: left; }
-  @media (max-width: 600px) { .examples { grid-template-columns: 1fr; } .welcome { padding-top: 40px; } .welcome h1 { font-size: 30px; } }
-  .example { border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 12px 14px; font: 15px/1.45 "Figtree", sans-serif; text-align: left; cursor: pointer; }
-  .example:hover { border-color: var(--border); background: var(--bg-soft); }
-  .example small { display: block; color: var(--muted); font-size: 12.5px; margin-bottom: 2px; }
+  @media (max-width: 600px) { .welcome { padding-top: 40px; } .welcome h1 { font-size: 30px; } }
 
   /* Conversation */
   .thread { padding: 32px 0 24px; display: flex; flex-direction: column; gap: 22px; }
@@ -122,12 +118,6 @@
     <div class="welcome" id="welcome">
       <h1>Ask the Bible</h1>
       <p>Paste what the client said. You'll get what to say, what to ask next, and the Bible section it came from.</p>
-      <div class="examples" id="examples">
-        <button type="button" class="example"><small>Information Gaps</small>How do I know our data isn't being used to train your models?</button>
-        <button type="button" class="example"><small>Control</small>I'm worried we turn this on and get hit with a bill nobody budgeted for.</button>
-        <button type="button" class="example"><small>Trust</small>We tried an AI pilot last year with another vendor and it just didn't deliver.</button>
-        <button type="button" class="example"><small>Readiness</small>We're mid-migration on another system. Anything new right now is a no.</button>
-      </div>
     </div>
     <div class="thread" id="thread" aria-live="polite"></div>
   </div>
@@ -141,7 +131,6 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
       </button>
     </form>
-    <p class="fine">Prototype running on Gemini's free tier - don't paste client names or confidential details. Answers come only from the Bible.</p>
   </div>
 </div>
 
@@ -176,10 +165,6 @@
     e.preventDefault();
     var text = input.value.trim();
     if (text && !busy) ask(text);
-  });
-  $("examples").addEventListener("click", function (e) {
-    var b = e.target.closest(".example"); if (!b) return;
-    ask(b.lastChild.textContent.trim());
   });
   $("newChat").addEventListener("click", function () {
     history = []; $("thread").innerHTML = ""; $("welcome").hidden = false; $("newChat").hidden = true; input.focus();
