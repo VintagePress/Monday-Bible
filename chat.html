@@ -121,9 +121,6 @@
       Bible Bot <span>for CSMs</span>
     </a>
     <nav class="site header-actions" aria-label="Site">
-      <button class="icon-btn" id="newChat" type="button" aria-label="New conversation" title="New conversation" hidden>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
       <a href="proposal.html">Proposal</a>
       <a href="/">Bible</a>
       <a href="chat.html" aria-current="page">Chat</a>
@@ -193,11 +190,9 @@
   function setEmpty(empty) {
     document.body.classList.toggle("empty", empty);
     $("welcome").hidden = !empty;
-    $("newChat").hidden = empty;
     (empty ? $("welcomeSlot") : $("bottomSlot")).appendChild($("form"));
     input.focus();
   }
-  $("newChat").addEventListener("click", function () { history = []; $("thread").innerHTML = ""; setEmpty(true); });
 
   // ---------- Rendering ----------
   function renderAnswer(r) {
