@@ -139,7 +139,8 @@ module.exports = async (req, res) => {
       return res.status(500).json({ error: "The bot isn't available right now." });
     }
 
-    let body = req.body;
+    let body;
+    try { body = req.body; } catch (e) { return res.status(400).json({ error: "Invalid request" }); } // Vercel throws on invalid JSON
     if (typeof body === "string") {
       try { body = JSON.parse(body || "{}"); } catch (e) { return res.status(400).json({ error: "Invalid request" }); }
     }
