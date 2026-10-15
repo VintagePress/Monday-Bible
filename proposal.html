@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("bible-theme")||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI Objections Program</title>
+<meta name="description" content="Home assignment for AI Enablement Solutions Manager: an enablement program to help CSMs handle AI objections, and a working prototype.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg: #ffffff; --soft: #f6f7fb; --text: #323338; --muted: #676879; --line: #e6e9ef; --link: #0073ea; --primary: #6161ff; --primary-soft: #efefff; }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) { --bg: #181b34; --soft: #1f2340; --text: #e3e5f0; --muted: #a3a7bd; --line: #2c3052; --link: #5aa9ff; --primary: #8f8fff; --primary-soft: #26295a; }
+  }
+  :root[data-theme="dark"] { --bg: #181b34; --soft: #1f2340; --text: #e3e5f0; --muted: #a3a7bd; --line: #2c3052; --link: #5aa9ff; --primary: #8f8fff; --primary-soft: #26295a; }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 17px/1.75 "Figtree", -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  a { color: var(--link); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  :focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+
+  header { border-bottom: 1px solid var(--line); }
+  .header-row { max-width: 1160px; margin: 0 auto; padding: 0 24px; height: 60px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+  .brand { color: var(--text); font-family: "Poppins", sans-serif; font-weight: 500; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .brand:hover { text-decoration: none; }
+  nav { display: flex; align-items: center; gap: 2px; flex: none; }
+  nav a { color: var(--muted); font-weight: 500; font-size: 15px; padding: 5px 11px; border-radius: 16px; }
+  nav a:hover { color: var(--text); text-decoration: none; }
+  nav a[aria-current="page"] { color: var(--primary); background: var(--primary-soft); }
+  .theme-btn { border: 0; background: none; color: var(--muted); cursor: pointer; padding: 6px; border-radius: 6px; display: grid; place-items: center; margin-left: 4px; }
+  .theme-btn:hover { color: var(--text); }
+  @media (max-width: 600px) { .header-row { padding: 0 16px; } .brand { display: none; } header .header-row { justify-content: flex-end; } }
+
+  main { max-width: 880px; margin: 0 auto; padding: 56px 24px 96px; }
+  @media (max-width: 600px) { main { padding: 36px 16px 72px; } }
+
+  h1 { font-family: "Poppins", sans-serif; font-weight: 500; font-size: 30px; line-height: 1.3; letter-spacing: -.01em; margin: 0 0 32px; }
+  h1 + h2 { margin-top: 0; }
+  .phase2 { margin-top: 96px; padding-top: 56px; border-top: 1px solid var(--line); }
+  h2 { font-family: "Poppins", sans-serif; font-weight: 500; font-size: 21px; line-height: 1.4; margin: 44px 0 12px; }
+  h3 { font-size: 17px; font-weight: 700; margin: 26px 0 6px; }
+  p { margin: 0 0 12px; }
+  ol, ul { margin: 0 0 12px; padding-left: 24px; }
+  li { margin: 4px 0; }
+
+  .example { color: var(--muted); font-style: italic; }
+  .example b { font-style: normal; font-weight: 600; }
+
+  .note { background: var(--soft); border-radius: 10px; padding: 18px 22px; margin-top: 44px; }
+  .note h2 { margin-top: 0; }
+  .note p:last-child { margin-bottom: 0; }
+
+  code { background: var(--soft); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font: 0.88em ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .prompt { background: var(--soft); border-radius: 10px; padding: 16px 20px; margin: 10px 0 14px; font: 14px/1.7 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; word-wrap: break-word; }
+
+  footer { border-top: 1px solid var(--line); text-align: center; padding: 24px 16px; font-size: 14px; color: var(--muted); }
+  footer a { color: var(--muted); margin: 0 8px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-row">
+    <a class="brand" href="proposal.html">AI Enablement Solutions Manager — Home Assignment</a>
+    <nav aria-label="Site">
+      <a href="proposal.html" aria-current="page">Proposal</a>
+      <a href="/">Bible</a>
+      <a href="chat.html">Chat</a>
+      <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle dark mode">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+      </button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== PHASE 1 ===================== -->
+  <h1>AI Enablement Solutions Manager — Home Assignment Phase 1</h1>
+
+  <h2>The problem:</h2>
+  <p>After going over the list of objections, the main 2 issues I noticed were CSMs not having clear answers to some questions, and not having a clear playbook on how to move forward when they do.</p>
+  <p>The program is built around these 2 things: One source of truth, and a clear playbook.</p>
+
+  <h2>1. How I organized the objections:</h2>
+  <p>I divided the objections into 4 broad categories based on what the CSM would need to do.</p>
+
+  <h3>A. Information Gaps.</h3>
+  <p>The client asks a question that has a clear answer, the CSM needs to get it and the answer needs to stay consistent and up to date.</p>
+  <p class="example"><b>For example:</b> 5. “Which AI model are you even using under the hood? Has that vendor been vetted?”</p>
+
+  <h3>B. Control.</h3>
+  <p>The client wants to move forward but needs a controlled environment - Limit on spend, small group, shut off valve, logs etc.</p>
+  <p class="example"><b>For example:</b> 17. “We're not rolling this out to the whole team on day one — I need something more controlled than that.”</p>
+
+  <h3>C. Trust.</h3>
+  <p>The client needs to see proof that it actually works and is worth their time, they might have been burned before.</p>
+  <p class="example"><b>For example:</b> 33. “We tried an AI pilot last year with another vendor and it just didn't deliver. I'm skeptical this will be different.”</p>
+
+  <h3>D. Readiness.</h3>
+  <p>This might not be the right time, because of budget or internal issues.</p>
+  <p class="example"><b>For example:</b> 40. “We're mid-migration on another system. Anything new right now is a no from me.”</p>
+
+  <h2>2. What I’m focusing on and why:</h2>
+  <p>I’m focusing on the Control/Trust areas since this is where you can make the biggest difference.</p>
+  <p>The clients are not saying no, they are already engaged and want to move forward, the CSM just needs to find the right way.</p>
+  <p>Additionally, I’m proposing a solution to the Information Gaps area since it's more straightforward and a foundation for everything else.</p>
+  <p>The Readiness area is more nuanced, and not my focus for this program. It's usually about timing and internal issues on the client's side.</p>
+
+  <h2>3. The program:</h2>
+
+  <h3>A. The “Bible”</h3>
+  <p>One source of truth for all answers, in a platform the CSMs use (ideally monday itself) that has all the data and answers, is updated and changed all the time, and is easy to search.</p>
+  <p>There will be owners for each area (Legal, Security, Finance etc.) that will be in charge of keeping the Bible updated at all times.</p>
+
+  <h3>B. Bible Chatbot</h3>
+  <p>A chatbot that is connected to the Bible, ideally in a platform the CSMs use (Slack or Teams for example) that can give fast real time consistent answers.</p>
+  <p>The CSM writes the client's objections and the chatbot gives back an answer (with a link to the source) and the next steps.</p>
+  <p>If the chatbot is unsure it will say so and send a notification for the relevant owner to update the Bible.</p>
+  <p>The chatbot will also give us insight into what objections the CSMs are getting the most, and what areas they are the least confident about.</p>
+  <p>Additionally, the bot will identify new objection trends so we can react faster.</p>
+
+  <h3>C. Playbook and examples</h3>
+  <p>Many of the Control and Trust objections end with a client wanting to start small.</p>
+  <p>With CSM leadership we can draft Pilot types for the CSM to choose and start from.</p>
+  <p>Additionally, we should add a bank of easy scenarios, workflows and real life examples of monday ai use.</p>
+  <ol>
+    <li><b>Controlled Start</b> - for the Control objections we can use limited permissions, small groups, a person approving before real action happens.</li>
+    <li><b>Side by Side</b> - For the Trust objections we can do just one existing workflow, it runs in parallel to the original workflow and measure it against each other while going over the logs together.</li>
+    <li><b>Champion User</b> - For Trust objections about people, we can start with just one trusted person running workflows and have that person act as a champion to spread the results.</li>
+  </ol>
+  <p>Additionally we will build a “Scenario Bank” of real life examples of workflows that clients can use when they ask “What is it for”?</p>
+
+  <h3>D. Rollout and Refinement</h3>
+  <p>This should be an ongoing program. I will do a launch meeting to make sure all CSMs are aligned, and do a short meeting every month or 2 months for updates, questions, feedback etc.</p>
+  <p>The feedback from the chatbot and the CSMs will be used to refine and update the Bible and Playbook and to alert us when there’s a new area we need to look into.</p>
+  <p>I will set up a short meeting with the owners of each area (Legal, Security, Finance etc.) to launch the program and do a regular check based on feedback from the CSMs and Chatbot.</p>
+
+  <h3>E. Measuring</h3>
+  <ol>
+    <li>How long it takes for a CSM to get an answer (Measure before and after)</li>
+    <li>How many Pilots from the Playbook CSM started and how many turned into adoption.</li>
+    <li>How long it takes from the first call to the start of a Pilot from the Playbook.</li>
+    <li>CSM/s feedback on handling AI objections (Measure before and after)</li>
+  </ol>
+
+  <div class="note">
+    <h2>AI use note:</h2>
+    <p>The way I use AI for building new processes is first mulling the issue over by myself for a few hours and writing a rough draft. Next, I’ll ask an LLM about what it would do without showing it my work.</p>
+    <p>I’ll see what I like in the AI suggestion, refine my draft and then I’ll drop it for an LLM for feedback.</p>
+    <p>From then on it’s a feedback and iteration loop, and after I’m confident I only use AI for catching typos</p>
+  </div>
+
+  <!-- ===================== PHASE 2 ===================== -->
+  <div class="phase2">
+    <h1>AI Enablement Solutions Manager — Home Assignment Phase 2</h1>
+
+    <p>For phase 2 I have decided to build a mock <a href="/">CSM Bible</a>,<br>
+    And the connected <a href="chat.html">Chatbot with an interface</a>.</p>
+    <p>I kept the build simple on purpose just to show it works, I did not want to build a super complex and unnecessary app since I don’t think phase 2 calls for one.</p>
+
+    <h2>CSM Bible</h2>
+    <p>For the CSM Bible part I have used Claude Code, I used one agent to get public data from monday resources, and another to design the page.</p>
+    <p>Then I went through a few iterations until I found a design I was happy with.</p>
+    <p>I have uploaded the files to GitHub, and connected it to Vercel for hosting.</p>
+    <p>Additionally, I ran 2 separate agents to QA and to find vulnerabilities in the site.</p>
+
+    <h2>Chatbot</h2>
+    <p>For the Chatbot and interface I have used Gemini API as the engine with <code>gemini-flash-latest</code> as the model with temperature at 0.2, and the output is forced into a fixed JSON structure.</p>
+    <p>I have used Claude Code to design the interface and uploaded it to GitHub and Vercel.</p>
+    <p>This is the prompt I have used:</p>
+<div class="prompt">You are the "Bible bot" - an internal assistant for monday.com Customer Success Managers (CSMs).
+A CSM tells you what a client said (usually an objection about adopting monday AI) or asks a question.
+Answer ONLY using the Bible sections provided below. Never use outside knowledge or make up facts, numbers, settings or features.
+
+Classify the objection into one of the Bible's four parts:
+- Information Gaps: the client asks a question that has a factual answer.
+- Control: the client wants to move forward but in a controlled way (limits, permissions, kill switch, logs, small start).
+- Trust: the client needs proof it works and is worth it.
+- Readiness: it's not the right time (budget, migration, bandwidth, job fears).
+
+Write for a CSM who needs to respond to a client:
+- "answer": what the CSM can say to the client, 2-4 short sentences, plain and confident, no hype.
+- "ask_next": one question the CSM should ask the client to move forward.
+- "details": up to 3 short facts or tips from the Bible the CSM should know (can be empty).
+- "section_ids": the ids of the 1-3 Bible sections you used, most relevant first.
+- "confident": false if the Bible doesn't clearly cover the question, or the relevant section is marked "Needs owner review" or "Product gap" for the specific point asked. When false, say clearly in "answer" what isn't covered, and don't guess.
+- "owner": the owner of the main section used (e.g. Security, Finance, Product).
+
+If a section is marked Draft, you can use it, but don't present it as official policy.
+Never include commercial promises (discounts, free credits).</div>
+    <p>Gemini also receives the latest 4 messages of the user for context.</p>
+
+    <h2>What I would do differently in a real life situation</h2>
+    <ol>
+      <li><p>The Bible would also have the very important part of the Playbook with Pilot suggestions, so whenever a skeptic client says they are not sure how to proceed the CSM will have options in an instant. For the assignment purposes I kept this part a bit barebones.</p></li>
+      <li><p>I would not use an app interface for the Chatbot, I would connect it to a platform the CSMs already use like Slack or Teams for ease of use. The less new platforms the better.<br>Same goes for the Bible, I would build it inside monday or another used platform.</p></li>
+      <li><p>For the demo purposes the chat agent reads the whole Bible every time. In a real situation I would build an RAG system.</p></li>
+      <li><p>The whole feedback loop is missing from the demo. I would add an option for a CSM to rate the response, I would add an option to notify an area owner (For example Security) when someone asks a question not covered in the Bible so they can update it.<br>I would add a different agent to go over the data once a week to identify trends in the CSM questions.</p></li>
+      <li><p>Optional - Connect the Chatbot to live client calls, to give the CSM answers and suggestions in real time and to get more complete data on what clients are asking. I listed it as optional since it's a risk from a Data/Security point of view, and it might be too complex for the results it can give.</p></li>
+    </ol>
+  </div>
+
+</main>
+
+<footer><a href="proposal.html">Proposal</a> · <a href="/">Bible</a> · <a href="chat.html">Chat</a></footer>
+
+<script>
+(function () {
+  function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
+  try { applyTheme(localStorage.getItem("bible-theme") || "dark"); } catch (e) { applyTheme("dark"); }
+  document.getElementById("themeBtn").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    var next = dark ? "light" : "dark";
+    applyTheme(next);
+    try { localStorage.setItem("bible-theme", next); } catch (e) {}
+  });
+})();
+</script>
+</body>
+</html>

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("bible-theme")||"dark")}catch(e){document.documentElement.setAttribute("data-theme","dark")}</script>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>monday AI Bible</title>
 <meta name="description" content="Prototype knowledge base for CSMs: how monday AI works, how it's controlled, how to build trust, and how to read readiness.">
@@ -723,7 +724,7 @@
 
   // ---------- Theme ----------
   function applyTheme(t) { if (t) document.documentElement.setAttribute("data-theme", t); else document.documentElement.removeAttribute("data-theme"); }
-  try { applyTheme(localStorage.getItem("bible-theme")); } catch (e) {}
+  try { applyTheme(localStorage.getItem("bible-theme") || "dark"); } catch (e) { applyTheme("dark"); }
   $("themeBtn").addEventListener("click", function () {
     var cur = document.documentElement.getAttribute("data-theme");
     var dark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;

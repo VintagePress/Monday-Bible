@@ -2,6 +2,11 @@
 
 A prototype knowledge base built for the **AI Enablement Solutions Manager** home assignment at monday.com.
 
+The site has three parts:
+- **Proposal** (`proposal.html`) - the written assignment, Phase 1 and Phase 2
+- **Bible** (`index.html`) - the knowledge base
+- **Chat** (`chat.html`) - the Bible bot
+
 It's one source of truth for everything a CSM needs when helping a client adopt monday AI. It has four parts, matching the four types of AI objections CSMs hear:
 
 1. **Information Gaps** - how monday AI works: data, security, models, pricing and agents
